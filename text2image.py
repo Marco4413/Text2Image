@@ -177,6 +177,7 @@ def generate_text_image(
         text,
         font=font, font_size=font_size,
         stroke_width=stroke_width,
+        multiline_align=multiline_align,
         multiline_spacing=multiline_spacing,
         fill_color=fill_color,
         stroke_color=stroke_color,
