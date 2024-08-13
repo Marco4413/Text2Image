@@ -67,7 +67,7 @@ def new_image_from_text(
     stroke_color: RGBColor=None,
     multiline_align: Alignment="center",
     multiline_spacing: int=4,
-) -> Image.Image:
+) -> Tuple[Image.Image, int]:
     """
     Generate an image containing the specified text drawn with the specified settings.
     Coordinates and sizes are in pixels.
