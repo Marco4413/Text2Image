@@ -24,6 +24,8 @@ Make sure to read the [requirements](#requirements) section first.
 
 This project can be both used as a CLI tool or imported from other Python scripts.
 
+To install this, download the repo and extract all files in the same directory.
+
 The following command will print the help prompt for the CLI:
 ```sh
 $ ./t2i.py --help
@@ -32,7 +34,7 @@ $ ./t2i.py --help
 You may also run `text2image.py` which will import `t2i.py` and run that instead.
 
 If you want to see an example of usage from other Python scripts
-see the [test.py](./test.py) script. All functions are use
+see the [test.py](./test.py) script. All functions use the
 [Sphinx](https://www.sphinx-doc.org/en/master/) syntax for
 documenting their usage.
 
