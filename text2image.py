@@ -87,26 +87,28 @@ def new_image_from_text(
     :param Alignment multiline_align: Alignment for lines of multi-line text.
     :param int multiline_spacing: Spacing between lines for multi-line text.
 
-    :return: The Pillow image that was generated.
-    :rtype: Image.Image
+    :return: A tuple containing the Pillow image that was generated and the text descent.
+             The text descent for single-line text is the distance from the bottom of the image to the baseline.
+             For multi-line text it's the distance to the baseline of the first line.
+    :rtype: (Image.Image, int)
     """
     # get bbox for text
     image = Image.new("RGBA", (0,0), (0,0,0,0))
     draw = ImageDraw.Draw(image)
     (left, top, right, bottom) = draw.multiline_textbbox(
-        (0,0), f"|{text}",
+        (0,0), text,
         align=multiline_align,
-        anchor="mm",
+        anchor="ms",
         font=font, font_size=font_size,
         stroke_width=stroke_width,
         spacing=multiline_spacing,
     )
 
     # FOR SOME REASON bbox MAY CONTAIN 0.0 WHICH IS A FLOAT... WHY???
+    x = int(-left)
+    y = int(-top)
     width = int(right-left)
     height = int(bottom-top)
-    x = width//2
-    y = height//2
 
     # resize image to fit text
     image = image.resize((width, height))
@@ -114,13 +116,13 @@ def new_image_from_text(
     draw.multiline_text(
         (x,y), text,
         align=multiline_align,
-        anchor="mm",
+        anchor="ms",
         font=font, font_size=font_size,
         stroke_width=stroke_width,
         spacing=multiline_spacing,
         fill=fill_color, stroke_fill=stroke_color,
     )
-    return image
+    return (image, int(bottom))
 
 def generate_text_image(
     text: str, *,
@@ -173,7 +175,7 @@ def generate_text_image(
     :return: The Pillow image that was generated.
     :rtype: Image.Image
     """
-    text = new_image_from_text(
+    (text_image, text_descent) = new_image_from_text(
         text,
         font=font, font_size=font_size,
         stroke_width=stroke_width,
@@ -183,14 +185,21 @@ def generate_text_image(
         stroke_color=stroke_color,
     )
 
+    # any((c in "\r\n") for c in text)
+    # Pillow does not treat \r as new line
+    is_multiline = "\n" in text
+    if is_multiline:
+        # Has no meaning for multiline text
+        text_descent = 0
+
     shadow = None
     if shadow_color is not None:
-        shadow = colorize_image(text.copy(), shadow_color)
+        shadow = colorize_image(text_image.copy(), shadow_color)
 
     x = padding[0]
     y = padding[1]
-    width = text.width + 2*padding[0]
-    height = text.height + 2*padding[1]
+    width = text_image.width + 2*padding[0]
+    height = text_image.height + 2*padding[1]
     if shadow is not None:
         if shadow_offset[0] >= 0:
             width += shadow_offset[0]
@@ -209,8 +218,9 @@ def generate_text_image(
         if width < min_width:
             x += (min_width-width)//2
             width = min_width
-        if height < min_height:
-            y += (min_height-height)//2
+        # <= because we need to add text_descent to y
+        if height+text_descent <= min_height:
+            y += (min_height-height)//2 + text_descent
             height = min_height
         if aspect_ratio is None and min_height != 0:
             aspect_ratio = min_width/min_height
@@ -248,7 +258,7 @@ def generate_text_image(
         if shadow_blur >= 0.0:
             image = image.filter(ImageFilter.BoxBlur(shadow_blur))
 
-    image.alpha_composite(text, (x,y))
+    image.alpha_composite(text_image, (x,y))
     return image
 
 def generate_and_save_text_image(
