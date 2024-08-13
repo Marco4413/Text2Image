@@ -219,6 +219,7 @@ def generate_text_image(
             x += (min_width-width)//2
             width = min_width
         # <= because we need to add text_descent to y
+        # TODO: Make it optional to align by text baseline?
         if height+text_descent <= min_height:
             y += (min_height-height)//2 + text_descent
             height = min_height

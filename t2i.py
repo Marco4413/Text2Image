@@ -171,6 +171,8 @@ def __main__(argv):
             return seq
         text = re.sub(r"\\([\\n])", replace_escape_seq, text)
 
+        # TODO: Allow specifying a format for output filenames.
+        #       i.e. "{year}-{month}-{day}_{idx}_{default_filename}.png"
         filename = sanitize_filename(text).strip(".")
         if not filename.endswith(".png"):
             filename += ".png"
