@@ -1,0 +1,6 @@
+# Set default behavior to automatically normalize line endings.
+* text=auto
+# Force .py files to have \n as eol.
+# This is needed for WSL to pick up the python interpreter.
+# Because if using git on Windows crlf is the default behaviour.
+*.py text eol=lf
