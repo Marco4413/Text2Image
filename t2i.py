@@ -115,6 +115,7 @@ def alignment_type(alignment_str: str) -> Alignment:
 
 def __main__(argv):
     import argparse, os
+    from datetime import datetime
 
     program = argv.pop(0)
     arg_parser = argparse.ArgumentParser(
@@ -123,7 +124,8 @@ def __main__(argv):
     )
 
     arg_parser.add_argument("text", help="The text to generate an image of.", nargs="+")
-    arg_parser.add_argument("-outdir", "--out-directory", type=str, metavar="OUT_DIRECTORY", default=".", help="the output directory for the generated images (default: cwd)")
+    arg_parser.add_argument("-outdir", "--out-directory", type=str, metavar="OUT_DIRECTORY", default=".", help="the output directory for the generated images (default: '%(default)s')")
+    arg_parser.add_argument("-outfile", "--out-filename", type=str, metavar="OUT_FILENAME", default="{default_filename}", help="the output filename template for each text (default: '%(default)s')")
 
     font_path = os.path.join(os.path.dirname(__file__), "JetBrainsMono.ttf")
     arg_parser.add_argument("-ff", "--font-family", type=str, metavar="FONT_FAMILY", default=font_path, help="the font family to use (default: JetBrainsMono)")
@@ -164,16 +166,22 @@ def __main__(argv):
         print(f"Could not load font '{opt.font_family}'.")
         return
 
-    for text in opt.text:
+    today = datetime.today()
+    for idx in range(len(opt.text)):
+        text = opt.text[idx]
         def replace_escape_seq(m: re.Match) -> str:
             seq = m.group(1)
             if seq == "n": return "\n"
             return seq
         text = re.sub(r"\\([\\n])", replace_escape_seq, text)
 
-        # TODO: Allow specifying a format for output filenames.
-        #       i.e. "{year}-{month}-{day}_{idx}_{default_filename}.png"
-        filename = sanitize_filename(text).strip(".")
+        assert opt.out_filename is not None
+        filename = opt.out_filename.format(
+            idx=idx, default_filename=sanitize_filename(text).strip("."),
+            year=today.year, month=today.month, day=today.day,
+            hour=today.hour, minute=today.minute, second=today.second,
+        )
+
         if not filename.endswith(".png"):
             filename += ".png"
         filepath = os.path.join(opt.out_directory, filename)
