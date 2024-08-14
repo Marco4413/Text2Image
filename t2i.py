@@ -108,6 +108,9 @@ def color_type(color_str: str) -> RGBColor:
 def get_alignment_format() -> str:
     return "<left | center | right>"
 
+def get_baseline_format() -> str:
+    return "<none | broad | perfect>"
+
 def __main__(argv):
     import argparse, os
     from datetime import datetime
@@ -131,6 +134,7 @@ def __main__(argv):
     arg_parser.add_argument("-align", "--multiline-align", choices=["left","center","right"], metavar=get_alignment_format(), default="center", help="the alignment used for multiline text (default: %(default)s)")
     arg_parser.add_argument("-spacing", "--multiline-spacing", type=any_measure_type, metavar=get_measure_format(), default="4px", help="the spacing between lines in multiline text. may be a negative value (default: %(default)s)")
 
+    arg_parser.add_argument("-baseline", "--baseline-align", choices=["none","broad","perfect"], metavar=get_baseline_format(), default="none", help="*DOES NOTHING FOR MULTI-LINE TEXT* the kind of alignment used to center the text based on its baseline. if 'none' it's perfectly centered based on the text height (default: %(default)s)")
     arg_parser.add_argument("-bg", "--background-color", type=color_type, metavar=get_color_format(), help="the color used as the background of the image (default: %(default)s)")
     arg_parser.add_argument("-sh", "--shadow-color", type=color_type, metavar=get_color_format(), help="the color used for text shadows (default: %(default)s)")
     arg_parser.add_argument("-sho", "--shadow-offset", type=vec2_type, metavar=get_vec2_format(), default="0,0", help="the offset of the text shadow (default: %(default)s)")
@@ -189,6 +193,7 @@ def __main__(argv):
             stroke_color=opt.stroke_color,
             multiline_align=opt.multiline_align,
             multiline_spacing=opt.multiline_spacing,
+            baseline_align=opt.baseline_align,
             background_color=opt.background_color,
             shadow_color=opt.shadow_color,
             shadow_offset=opt.shadow_offset,

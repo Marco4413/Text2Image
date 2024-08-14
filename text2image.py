@@ -26,6 +26,7 @@ from typing import Tuple, Union
 Vec2      = Tuple[int,int]
 RGBColor  = Tuple[int,int,int]
 Alignment = Union["left","center","right"]
+BaselineAlignment = Union["none","broad","perfect"]
 
 def sanitize_filename(filename: str) -> str:
     """Replaces all path-unsafe characters from filename with safe ones."""
@@ -135,6 +136,7 @@ def generate_text_image(
     multiline_align: Alignment="center",
     multiline_spacing: int=4,
     # post-processing
+    baseline_align: BaselineAlignment="none",
     background_color: RGBColor=None,
     shadow_color: RGBColor=None,
     shadow_offset: Vec2=(0,0),
@@ -196,10 +198,10 @@ def generate_text_image(
     if shadow_color is not None:
         shadow = colorize_image(text_image.copy(), shadow_color)
 
-    x = padding[0]
-    y = padding[1]
-    width = text_image.width + 2*padding[0]
-    height = text_image.height + 2*padding[1]
+    x = 0
+    y = 0
+    width = text_image.width
+    height = text_image.height
     if shadow is not None:
         if shadow_offset[0] >= 0:
             width += shadow_offset[0]
@@ -218,13 +220,21 @@ def generate_text_image(
         if width < min_width:
             x += (min_width-width)//2
             width = min_width
-        # <= because we need to add text_descent to y
-        # TODO: Make it optional to align by text baseline?
-        if height+text_descent <= min_height:
-            y += (min_height-height)//2 + text_descent
+        if height <= min_height:
+            y += (min_height-height)//2
             height = min_height
         if aspect_ratio is None and min_height != 0:
             aspect_ratio = min_width/min_height
+
+    if not is_multiline:
+        # I hate the match statement, indentation gets out of hand quickly
+        if baseline_align == "broad":
+            y += text_descent//2
+        elif baseline_align == "perfect":
+            baseline_offset = text_descent-text_image.height//2
+            y += baseline_offset
+        else:
+            assert baseline_align == "none"
 
     if aspect_ratio is not None and aspect_ratio > 0.0:
         desired_width = max(int(height*aspect_ratio), width)
@@ -245,6 +255,19 @@ def generate_text_image(
             new_width = int(desired_height*aspect_ratio)
             x += (new_width-width)//2
             width = new_width
+
+    # If we're not respecting padding or we're out of bounds, expand
+    if y <= padding[1]:
+        y = padding[1]
+    y_end = y+text_image.height
+    if height-y_end < padding[1]:
+        height = y_end+padding[1]
+
+    if x <= padding[0]:
+        x = padding[0]
+    x_end = x+text_image.width
+    if width-x_end < padding[0]:
+        width = x_end+padding[0]
 
     if background_color is None:
         background_color = (0,0,0,0)
