@@ -58,18 +58,25 @@ $ ./t2i.py -fs 96pt -size 1280,640 -bg 0x222A30 -fg 0xE6E2E1 -sh 0x010704 -sho=-
 Here's an example of aligned chars generation:
 ```sh
 # Generate e f g perfectly aligned
-$ ./t2i.py -fs 32pt -size 32,64 -baseline perfect -- e f g
+$ ./t2i.py -fs 32pt -size 0,64 -pad 3,0 -baseline perfect -- e f g
 
 # Generate e f g broadly aligned
-$ ./t2i.py -fs 32pt -size 32,64 -baseline broad -- e f g
+$ ./t2i.py -fs 32pt -size 0,64 -pad 3,0 -baseline broad -- e f g
 
 # Generate e f g center-aligned based on char size
-$ ./t2i.py -fs 32pt -size 32,64 -baseline none -- e f g
+$ ./t2i.py -fs 32pt -size 0,64 -pad 3,0 -baseline none -- e f g
 ```
 
-Specifying a min-size (`-size`) is important, and you should check
-that the output image was not expanded. If all images have the same
-size specified in the command, then you can tile them to write text.
+Specifying a min height (`-size 0,H`) is important, and you should
+check that the output image was not expanded vertically. If all
+images have the same height specified in the command, then you can
+tile them to write text.
+
+Since the specified min width is 0 the image is shrunk to fit
+horizontally. However, we can add some padding to keep some distance
+between the characters. If you want vertical padding, it's better
+to increase the min height because the padding will always
+expand the image if applied.
 
 `none` center aligns the text based on its bounding box. This is
 the default behaviour for text generation.
