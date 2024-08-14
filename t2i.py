@@ -70,9 +70,12 @@ def positive_vec2_type(vec2_str: str) -> Vec2:
     return vec2
 
 def get_color_format() -> str:
-    return "<R,G,B | 0xL | 0xLL | 0xRGB | 0xRRGGBB>"
+    return "<transparent | R,G,B | 0xL | 0xLL | 0xRGB | 0xRRGGBB>"
 
 def color_type(color_str: str) -> RGBColor:
+    if color_str == "transparent":
+        return None
+
     if color_str.startswith("#") or color_str.startswith("0x"):
         hex_str = color_str[1:] if color_str.startswith("#") else color_str[2:]
         if len(hex_str) == 1:
@@ -130,13 +133,13 @@ def __main__(argv):
     arg_parser.add_argument("-fs", "--font-size", type=measure_type, metavar=get_measure_format(), default="32pt", help="the font size to use (default: %(default)s)")
     arg_parser.add_argument("-fg", "--fill-color", type=color_type, metavar=get_color_format(), default="0xE6E2E1", help="the color to fill the text with (default: %(default)s)")
     arg_parser.add_argument("-stw", "--stroke-width", type=measure_type, metavar=get_measure_format(), default="0px", help="the width of the stroke used to draw the text (default: %(default)s)")
-    arg_parser.add_argument("-st", "--stroke-color", type=color_type, metavar=get_color_format(), help="the color of the stroke used to draw the text (default: %(default)s)")
+    arg_parser.add_argument("-st", "--stroke-color", type=color_type, metavar=get_color_format(), default="transparent", help="the color of the stroke used to draw the text (default: %(default)s)")
     arg_parser.add_argument("-align", "--multiline-align", choices=["left","center","right"], metavar=get_alignment_format(), default="center", help="the alignment used for multiline text (default: %(default)s)")
     arg_parser.add_argument("-spacing", "--multiline-spacing", type=any_measure_type, metavar=get_measure_format(), default="4px", help="the spacing between lines in multiline text. may be a negative value (default: %(default)s)")
 
     arg_parser.add_argument("-baseline", "--baseline-align", choices=["none","broad","perfect"], metavar=get_baseline_format(), default="none", help="*DOES NOTHING FOR MULTI-LINE TEXT* the kind of alignment used to center the text based on its baseline. if 'none' it's perfectly centered based on the text height (default: %(default)s)")
-    arg_parser.add_argument("-bg", "--background-color", type=color_type, metavar=get_color_format(), help="the color used as the background of the image (default: %(default)s)")
-    arg_parser.add_argument("-sh", "--shadow-color", type=color_type, metavar=get_color_format(), help="the color used for text shadows (default: %(default)s)")
+    arg_parser.add_argument("-bg", "--background-color", type=color_type, metavar=get_color_format(), default="transparent", help="the color used as the background of the image (default: %(default)s)")
+    arg_parser.add_argument("-sh", "--shadow-color", type=color_type, metavar=get_color_format(), default="transparent", help="the color used for text shadows (default: %(default)s)")
     arg_parser.add_argument("-sho", "--shadow-offset", type=vec2_type, metavar=get_vec2_format(), default="0,0", help="the offset of the text shadow (default: %(default)s)")
     arg_parser.add_argument("-shb", "--shadow-blur", type=float, metavar="SHADOW_BLUR", default=-1.0, help="the intensity of the blur applied to the text shadow. none if <= 0 (default: %(default)s)")
 

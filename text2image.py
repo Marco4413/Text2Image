@@ -63,7 +63,7 @@ def new_image_from_text(
     font: ImageFont=None,
     font_size: int=None,
     padding: Vec2=(0,0),
-    fill_color: RGBColor=None,
+    fill_color: Union[RGBColor, None]=(0,0,0),
     stroke_width: int=0,
     stroke_color: RGBColor=None,
     multiline_align: Alignment="center",
@@ -80,10 +80,10 @@ def new_image_from_text(
     :type font: ImageFont or None
     :param font_size: The font size used if no font is provided.
     :type font_size: int or None
-    :param fill_color: The color used to fill the text.
+    :param fill_color: The color used to fill the text. Transparent if None.
     :type fill_color: RGBColor or None
     :param int stroke_width: The width of the stroke used to draw the text.
-    :param stroke_color: The color used for the stroke of the text.
+    :param stroke_color: The color used for the stroke of the text. Transparent if None.
     :type stroke_color: RGBColor or None
     :param Alignment multiline_align: Alignment for lines of multi-line text.
     :param int multiline_spacing: Spacing between lines for multi-line text.
@@ -121,7 +121,8 @@ def new_image_from_text(
         font=font, font_size=font_size,
         stroke_width=stroke_width,
         spacing=multiline_spacing,
-        fill=fill_color, stroke_fill=stroke_color,
+        fill=(0,0,0,0) if fill_color is None else fill_color,
+        stroke_fill=(0,0,0,0) if stroke_color is None else stroke_color,
     )
     return (image, int(bottom))
 
@@ -130,7 +131,7 @@ def generate_text_image(
     # text settings
     font: ImageFont=None,
     font_size: int=None,
-    fill_color: RGBColor=None,
+    fill_color: Union[RGBColor, None]=(0,0,0),
     stroke_width: int=0,
     stroke_color: RGBColor=None,
     multiline_align: Alignment="center",
@@ -155,14 +156,15 @@ def generate_text_image(
     :type font: ImageFont or None
     :param font_size: The font size used if no font is provided.
     :type font_size: int or None
-    :param fill_color: The color used to fill the text.
+    :param fill_color: The color used to fill the text. Transparent if None.
     :type fill_color: RGBColor or None
     :param int stroke_width: The width of the stroke used to draw the text.
-    :param stroke_color: The color used for the stroke of the text.
+    :param stroke_color: The color used for the stroke of the text. Transparent if None.
     :type stroke_color: RGBColor or None
     :param Alignment multiline_align: Alignment for lines of multi-line text.
     :param int multiline_spacing: Spacing between lines for multi-line text.
-    :param background_color: The color for the background of the generated image. If None, it's transparent.
+    :param BaselineAlignment baseline_align: Vertical alignment used for single-line text.
+    :param background_color: The color for the background of the generated image. Transparent if None.
     :type background_color: RGBColor or None
     :param shadow_color: The color for the text shadow. If None, no shadow is generated.
     :type shadow_color: RGBColor or None
