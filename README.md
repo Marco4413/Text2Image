@@ -46,6 +46,9 @@ documenting their usage.
 # Transparent background
 $ ./t2i.py -fs 96pt -size 1280,640 -fg 0xE6E2E1 -st 0x222A30 -stw 2px -sh 0x010704 -sho=-30,15 -shb 10 -- Text2Image
 
+# Hollow with background
+$ ./t2i.py -fs 96pt -size 1280,640 -bg 0x222A30 -fg transparent -st 0xE6E2E1 -stw 2px -sh 0x010704 -sho=-30,15 -shb 20 -- Text2Image
+
 # With background
 $ ./t2i.py -fs 96pt -size 1280,640 -bg 0x222A30 -fg 0xE6E2E1 -sh 0x010704 -sho=-30,15 -shb 10 -- Text2Image
 ```
