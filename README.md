@@ -18,6 +18,8 @@ which fits each one, they should all be aligned with each other.
 That means that you can just generate an image of W*chars by H
 and put the characters next to each other to write text.
 
+See [Center-Aligned Characters](#center-aligned-characters)
+
 ## Usage
 
 Make sure to read the [requirements](#requirements) section first.
@@ -47,6 +49,34 @@ $ ./t2i.py -fs 96pt -size 1280,640 -fg 0xE6E2E1 -st 0x222A30 -stw 2px -sh 0x0107
 # With background
 $ ./t2i.py -fs 96pt -size 1280,640 -bg 0x222A30 -fg 0xE6E2E1 -sh 0x010704 -sho=-30,15 -shb 10 -- Text2Image
 ```
+
+### Center-aligned Characters
+
+Here's an example of aligned chars generation:
+```sh
+# Generate e f g perfectly aligned
+$ ./t2i.py -fs 32pt -size 32,64 -baseline perfect -- e f g
+
+# Generate e f g broadly aligned
+$ ./t2i.py -fs 32pt -size 32,64 -baseline broad -- e f g
+
+# Generate e f g center-aligned based on char size
+$ ./t2i.py -fs 32pt -size 32,64 -baseline none -- e f g
+```
+
+Specifying a min-size (`-size`) is important, and you should check
+that the output image was not expanded. If all images have the same
+size specified in the command, then you can tile them to write text.
+
+`none` center aligns the text based on its bounding box. This is
+the default behaviour for text generation.
+
+`broad` does an approximation of center-alignment based on the text
+baseline. You should use this if you want to keep the height of the
+image small.
+
+`perfect` perfectly aligns to the center the text based on its baseline.
+This has the drawback of generating very tall images to fit the text.
 
 ## What's up with the two main python files?
 
