@@ -118,7 +118,7 @@ def __main__(argv):
         description="A Text to Image generator.",
     )
 
-    arg_parser.add_argument("text", help="The text to generate an image of.", nargs="+")
+    arg_parser.add_argument("text", help="the text to generate an images of. each text is put into its own file based on out-filename", nargs="+")
     arg_parser.add_argument("-outdir", "--out-directory", type=str, metavar="OUT_DIRECTORY", default=".", help="the output directory for the generated images (default: '%(default)s')")
     arg_parser.add_argument("-outfile", "--out-filename", type=str, metavar="OUT_FILENAME", default="{default_filename}", help="the output filename template for each text (default: '%(default)s')")
 
