@@ -108,11 +108,6 @@ def color_type(color_str: str) -> RGBColor:
 def get_alignment_format() -> str:
     return "<left | center | right>"
 
-def alignment_type(alignment_str: str) -> Alignment:
-    if alignment_str not in ["left","center","right"]:
-        raise ValueError("Alignment must be one of 'left', 'center' or 'right'.")
-    return alignment_str
-
 def __main__(argv):
     import argparse, os
     from datetime import datetime
@@ -133,8 +128,7 @@ def __main__(argv):
     arg_parser.add_argument("-fg", "--fill-color", type=color_type, metavar=get_color_format(), default="0xE6E2E1", help="the color to fill the text with (default: %(default)s)")
     arg_parser.add_argument("-stw", "--stroke-width", type=measure_type, metavar=get_measure_format(), default="0px", help="the width of the stroke used to draw the text (default: %(default)s)")
     arg_parser.add_argument("-st", "--stroke-color", type=color_type, metavar=get_color_format(), help="the color of the stroke used to draw the text (default: %(default)s)")
-    # TODO: Use choices?
-    arg_parser.add_argument("-align", "--multiline-align", type=alignment_type, metavar=get_alignment_format(), default="center", help="the alignment used for multiline text (default: %(default)s)")
+    arg_parser.add_argument("-align", "--multiline-align", choices=["left","center","right"], metavar=get_alignment_format(), default="center", help="the alignment used for multiline text (default: %(default)s)")
     arg_parser.add_argument("-spacing", "--multiline-spacing", type=any_measure_type, metavar=get_measure_format(), default="4px", help="the spacing between lines in multiline text. may be a negative value (default: %(default)s)")
 
     arg_parser.add_argument("-bg", "--background-color", type=color_type, metavar=get_color_format(), help="the color used as the background of the image (default: %(default)s)")
