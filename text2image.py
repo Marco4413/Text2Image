@@ -198,12 +198,19 @@ def generate_text_image(
 
     shadow = None
     if shadow_color is not None:
+        # Can't check for shadow_offset != (0,0) because the shadow may be blurred
+        # TODO: Maybe generate a completely new text with the right color?
+        #       This was done because initial testing was done with white text.
+        #       Probably going to make it an option.
         shadow = colorize_image(text_image.copy(), shadow_color)
+    else:
+        # Set shadow_offset to 0 so we can safely use it when no shadow is present
+        shadow_offset = (0,0)
 
-    x = 0
-    y = 0
-    width = text_image.width
-    height = text_image.height
+    x = padding[0]
+    y = padding[1]
+    width = text_image.width + 2*padding[0]
+    height = text_image.height + 2*padding[1]
     if shadow is not None:
         if shadow_offset[0] >= 0:
             width += shadow_offset[0]
@@ -228,16 +235,6 @@ def generate_text_image(
         if aspect_ratio is None and min_height != 0:
             aspect_ratio = min_width/min_height
 
-    if not is_multiline:
-        # I hate the match statement, indentation gets out of hand quickly
-        if baseline_align == "broad":
-            y += text_descent//2
-        elif baseline_align == "perfect":
-            baseline_offset = text_descent-text_image.height//2
-            y += baseline_offset
-        else:
-            assert baseline_align == "none"
-
     if aspect_ratio is not None and aspect_ratio > 0.0:
         desired_width = max(int(height*aspect_ratio), width)
         desired_height = max(int(width/aspect_ratio), height)
@@ -258,18 +255,31 @@ def generate_text_image(
             x += (new_width-width)//2
             width = new_width
 
-    # If we're not respecting padding or we're out of bounds, expand
-    if y <= padding[1]:
-        y = padding[1]
-    y_end = y+text_image.height
-    if height-y_end < padding[1]:
-        height = y_end+padding[1]
+    # Up to here everything is centered around the text+shadow
+    # Moreover, the width and height of the image is fully calculated
+    # So here's the place where we can change the vertical alignment of the text
+    if not is_multiline:
+        baseline_offset = 0
+        if baseline_align == "broad":
+            baseline_offset = text_descent//2
+        elif baseline_align == "perfect":
+            baseline_offset = text_descent-text_image.height//2
+        elif baseline_align != "none":
+            raise ValueError("baseline_align must be 'broad', 'perfect' or 'none'.")
 
-    if x <= padding[0]:
-        x = padding[0]
-    x_end = x+text_image.width
-    if width-x_end < padding[0]:
-        width = x_end+padding[0]
+        # If 'none' running the code below should do nothing
+        # Even though they're not heavy calculations,
+        #  I just want to make sure they do not interfere
+        #  with the output image in any way
+        if baseline_align != "none":
+            # Calculate lower and upper bounds
+            # Min and Max y values to keep the text+shadow within bounds+padding
+            lower_bounds = padding[1] - min(0, shadow_offset[1])
+            upper_bounds = height - (padding[1]+text_image.height+max(0, shadow_offset[1]))
+
+            new_y = y+baseline_offset
+            # Clamp new_y between lower_bounds and upper_bounds
+            y = min(max(new_y, lower_bounds), upper_bounds)
 
     if background_color is None:
         background_color = (0,0,0,0)
