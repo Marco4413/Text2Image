@@ -42,6 +42,51 @@ def sanitize_filename(filename: str) -> str:
 def px(x): return x
 def pt(x): return int(x * (96.0/72.0))
 
+def color(color_str: str) -> Union[RGBColor, None]:
+    """
+    Converts a string into an RGB color.
+
+    Allowed formats are <transparent | R,G,B | 0xL | 0xLL | 0xRGB | 0xRRGGBB> where hex values may also start with a '#'.
+
+    :param str color_str: The string to convert from.
+    :return: RGBColor if the specified color is not 'transparent', None otherwise.
+    :rtype: RGBColor or None
+    """
+    if color_str == "transparent":
+        return None
+
+    if color_str.startswith("#") or color_str.startswith("0x"):
+        hex_str = color_str[1:] if color_str.startswith("#") else color_str[2:]
+        if len(hex_str) == 1:
+            l = int(hex_str, base=16)
+            return (l * 0x11, l * 0x11, l * 0x11)
+        elif len(hex_str) == 2:
+            ll = int(hex_str, base=16)
+            return (ll, ll, ll)
+        elif len(hex_str) == 3:
+            rgb = int(hex_str, base=16)
+            return (
+                ((rgb & 0xF00) >> 8) * 0x11,
+                ((rgb & 0x0F0) >> 4) * 0x11,
+                ((rgb & 0x00F) >> 0) * 0x11,
+            )
+        elif len(hex_str) == 6:
+            rrggbb = int(hex_str, base=16)
+            return (
+                (rrggbb & 0xFF0000) >> 16,
+                (rrggbb & 0x00FF00) >>  8,
+                (rrggbb & 0x0000FF) >>  0,
+            )
+        raise ValueError("An hex color must have either 1, 2, 3 or 6 digits.")
+
+    rgb_color = tuple(int(x) for x in color_str.split(","))
+    if len(rgb_color) != 3:
+        raise ValueError("A color is a triple of comma-separated positive integers RGB values in the range of [0,255].")
+    for comp in rgb_color:
+        if comp < 0 or comp > 255:
+            raise ValueError("A color is a triple of comma-separated positive integers RGB values in the range of [0,255].")
+    return rgb_color
+
 def colorize_image(image: Image.Image, color: RGBColor) -> Image.Image:
     """Sets every pixel of the given image to color*average_pixel_color"""
     image_pixels = image.load()

@@ -72,42 +72,6 @@ def positive_vec2_type(vec2_str: str) -> Vec2:
 def get_color_format() -> str:
     return "<transparent | R,G,B | 0xL | 0xLL | 0xRGB | 0xRRGGBB>"
 
-def color_type(color_str: str) -> RGBColor:
-    if color_str == "transparent":
-        return None
-
-    if color_str.startswith("#") or color_str.startswith("0x"):
-        hex_str = color_str[1:] if color_str.startswith("#") else color_str[2:]
-        if len(hex_str) == 1:
-            l = int(hex_str, base=16)
-            return (l * 0x11, l * 0x11, l * 0x11)
-        elif len(hex_str) == 2:
-            ll = int(hex_str, base=16)
-            return (ll, ll, ll)
-        elif len(hex_str) == 3:
-            rgb = int(hex_str, base=16)
-            return (
-                ((rgb & 0xF00) >> 8) * 0x11,
-                ((rgb & 0x0F0) >> 4) * 0x11,
-                ((rgb & 0x00F) >> 0) * 0x11,
-            )
-        elif len(hex_str) == 6:
-            rrggbb = int(hex_str, base=16)
-            return (
-                (rrggbb & 0xFF0000) >> 16,
-                (rrggbb & 0x00FF00) >>  8,
-                (rrggbb & 0x0000FF) >>  0,
-            )
-        raise ValueError("An hex color must have either 1, 2, 3 or 6 digits.")
-
-    rgb_color = tuple(int(x) for x in color_str.split(","))
-    if len(rgb_color) != 3:
-        raise ValueError("A color is a triple of comma-separated positive integers RGB values in the range of [0,255].")
-    for comp in rgb_color:
-        if comp < 0 or comp > 255:
-            raise ValueError("A color is a triple of comma-separated positive integers RGB values in the range of [0,255].")
-    return rgb_color
-
 def get_alignment_format() -> str:
     return "<left | center | right>"
 
@@ -132,15 +96,15 @@ def __main__(argv):
     font_path = os.path.join(os.path.dirname(__file__), "JetBrainsMono.ttf")
     arg_parser.add_argument("-ff", "--font-family", type=str, metavar="FONT_FAMILY", default=font_path, help="the font family to use (default: JetBrainsMono)")
     arg_parser.add_argument("-fs", "--font-size", type=measure_type, metavar=get_measure_format(), default="32pt", help="the font size to use (default: %(default)s)")
-    arg_parser.add_argument("-fg", "--fill-color", type=color_type, metavar=get_color_format(), default="0xE6E2E1", help="the color to fill the text with (default: %(default)s)")
+    arg_parser.add_argument("-fg", "--fill-color", type=color, metavar=get_color_format(), default="0xE6E2E1", help="the color to fill the text with (default: %(default)s)")
     arg_parser.add_argument("-stw", "--stroke-width", type=measure_type, metavar=get_measure_format(), default="0px", help="the width of the stroke used to draw the text (default: %(default)s)")
-    arg_parser.add_argument("-st", "--stroke-color", type=color_type, metavar=get_color_format(), default="transparent", help="the color of the stroke used to draw the text (default: %(default)s)")
+    arg_parser.add_argument("-st", "--stroke-color", type=color, metavar=get_color_format(), default="transparent", help="the color of the stroke used to draw the text (default: %(default)s)")
     arg_parser.add_argument("-align", "--multiline-align", choices=["left","center","right"], metavar=get_alignment_format(), default="center", help="the alignment used for multiline text (default: %(default)s)")
     arg_parser.add_argument("-spacing", "--multiline-spacing", type=any_measure_type, metavar=get_measure_format(), default="4px", help="the spacing between lines in multiline text. may be a negative value (default: %(default)s)")
 
     arg_parser.add_argument("-baseline", "--baseline-align", choices=["none","broad","perfect"], metavar=get_baseline_format(), default="none", help="*DOES NOTHING FOR MULTI-LINE TEXT* the kind of alignment used to center the text based on its baseline. if 'none' it's perfectly centered based on the text height (default: %(default)s)")
-    arg_parser.add_argument("-bg", "--background-color", type=color_type, metavar=get_color_format(), default="transparent", help="the color used as the background of the image (default: %(default)s)")
-    arg_parser.add_argument("-sh", "--shadow-color", type=color_type, metavar=get_color_format(), default="transparent", help="the color used for text shadows (default: %(default)s)")
+    arg_parser.add_argument("-bg", "--background-color", type=color, metavar=get_color_format(), default="transparent", help="the color used as the background of the image (default: %(default)s)")
+    arg_parser.add_argument("-sh", "--shadow-color", type=color, metavar=get_color_format(), default="transparent", help="the color used for text shadows (default: %(default)s)")
     arg_parser.add_argument("--no-shadow-blend", dest="shadow_color_blend", action="store_false", help="whether to blend the shadow color with the text color (default: %(default)s)")
     arg_parser.add_argument("-sho", "--shadow-offset", type=vec2_type, metavar=get_vec2_format(), default="0,0", help="the offset of the text shadow (default: %(default)s)")
     arg_parser.add_argument("-shb", "--shadow-blur", type=float, metavar="SHADOW_BLUR", default=-1.0, help="the intensity of the blur applied to the text shadow. none if <= 0 (default: %(default)s)")
