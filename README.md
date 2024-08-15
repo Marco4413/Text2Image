@@ -67,16 +67,17 @@ $ ./t2i.py -fs 32pt -size 0,64 -pad 3,0 -baseline broad -- e f g
 $ ./t2i.py -fs 32pt -size 0,64 -pad 3,0 -baseline none -- e f g
 ```
 
-Specifying a min height (`-size 0,H`) is important, and you should
-check that the output image was not expanded vertically. If all
-images have the same height specified in the command, then you can
-tile them to write text.
+Specifying a min height (`-size 0,H`) is important since the default behaviour
+is shrink to fit the text + padding. You should make sure the text fits the
+specified height, otherwise, the text position is clamped to not go out of bounds.
+Therefore, the baseline is not perfectly centered vertically.
 
 Since the specified min width is 0 the image is shrunk to fit
 horizontally. However, we can add some padding to keep some distance
 between the characters. If you want vertical padding, it's better
-to increase the min height because the padding will always
-expand the image if applied.
+to increase the min height so you see whether the text is going out of
+bounds or not (if its top edge is right at the top of the image,
+it's probably going out of bounds).
 
 `none` center aligns the text based on its bounding box. This is
 the default behaviour for text generation.
