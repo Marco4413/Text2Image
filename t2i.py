@@ -124,6 +124,7 @@ def __main__(argv):
         description="A Text to Image generator.",
     )
 
+    # TODO: Do a pass of help prompts and defaults
     arg_parser.add_argument("text", help="the text to generate an images of. each text is put into its own file based on out-filename", nargs="+")
     arg_parser.add_argument("-outdir", "--out-directory", type=str, metavar="OUT_DIRECTORY", default=".", help="the output directory for the generated images (default: '%(default)s')")
     arg_parser.add_argument("-outfile", "--out-filename", type=str, metavar="OUT_FILENAME", default="{default_filename}", help="the output filename template for each text (default: '%(default)s')")
@@ -140,6 +141,7 @@ def __main__(argv):
     arg_parser.add_argument("-baseline", "--baseline-align", choices=["none","broad","perfect"], metavar=get_baseline_format(), default="none", help="*DOES NOTHING FOR MULTI-LINE TEXT* the kind of alignment used to center the text based on its baseline. if 'none' it's perfectly centered based on the text height (default: %(default)s)")
     arg_parser.add_argument("-bg", "--background-color", type=color_type, metavar=get_color_format(), default="transparent", help="the color used as the background of the image (default: %(default)s)")
     arg_parser.add_argument("-sh", "--shadow-color", type=color_type, metavar=get_color_format(), default="transparent", help="the color used for text shadows (default: %(default)s)")
+    arg_parser.add_argument("--no-shadow-blend", dest="shadow_color_blend", action="store_false", help="whether to blend the shadow color with the text color (default: %(default)s)")
     arg_parser.add_argument("-sho", "--shadow-offset", type=vec2_type, metavar=get_vec2_format(), default="0,0", help="the offset of the text shadow (default: %(default)s)")
     arg_parser.add_argument("-shb", "--shadow-blur", type=float, metavar="SHADOW_BLUR", default=-1.0, help="the intensity of the blur applied to the text shadow. none if <= 0 (default: %(default)s)")
 
@@ -199,6 +201,7 @@ def __main__(argv):
             baseline_align=opt.baseline_align,
             background_color=opt.background_color,
             shadow_color=opt.shadow_color,
+            shadow_color_blend=opt.shadow_color_blend,
             shadow_offset=opt.shadow_offset,
             shadow_blur=opt.shadow_blur,
             padding=opt.padding,

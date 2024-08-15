@@ -140,6 +140,7 @@ def generate_text_image(
     baseline_align: BaselineAlignment="none",
     background_color: RGBColor=None,
     shadow_color: RGBColor=None,
+    shadow_color_blend: bool=True,
     shadow_offset: Vec2=(0,0),
     shadow_blur: float=0.0, # if <= 0.0 it's disabled, ImageFilter.BoxBlur is used
     # output settings
@@ -168,6 +169,7 @@ def generate_text_image(
     :type background_color: RGBColor or None
     :param shadow_color: The color for the text shadow. If None, no shadow is generated.
     :type shadow_color: RGBColor or None
+    :param bool shadow_color_blend: Whether to blend shadow_color with the text color.
     :param Vec2 shadow_offset: Offset used for the text shadow.
     :param float shadow_blur: Intensity of the blur applied to the text shadow. If 0, none is applied.
     :param Vec2 padding: The minimum padding around the text.
@@ -199,10 +201,18 @@ def generate_text_image(
     shadow = None
     if shadow_color is not None:
         # Can't check for shadow_offset != (0,0) because the shadow may be blurred
-        # TODO: Maybe generate a completely new text with the right color?
-        #       This was done because initial testing was done with white text.
-        #       Probably going to make it an option.
-        shadow = colorize_image(text_image.copy(), shadow_color)
+        if shadow_color_blend:
+            shadow = colorize_image(text_image.copy(), shadow_color)
+        else:
+            (shadow, _) = new_image_from_text(
+                text,
+                font=font, font_size=font_size,
+                stroke_width=stroke_width,
+                multiline_align=multiline_align,
+                multiline_spacing=multiline_spacing,
+                fill_color=shadow_color,
+                stroke_color=shadow_color,
+            )
     else:
         # Set shadow_offset to 0 so we can safely use it when no shadow is present
         shadow_offset = (0,0)
