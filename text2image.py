@@ -392,5 +392,5 @@ def generate_and_save_text_image(
 
 if __name__ == "__main__":
     from t2i import __main__
-    from sys import argv
-    __main__(argv.copy())
+    from sys import argv, exit
+    exit(__main__(argv.copy()))

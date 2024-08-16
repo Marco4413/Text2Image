@@ -78,9 +78,10 @@ def get_alignment_format() -> str:
 def get_baseline_format() -> str:
     return "<none | broad | perfect>"
 
-def __main__(argv):
-    import argparse, os
+def __main__(argv) -> int:
+    import argparse, os, traceback
     from datetime import datetime
+    from sys import stderr
 
     program = argv.pop(0)
     arg_parser = argparse.ArgumentParser(
@@ -118,7 +119,7 @@ def __main__(argv):
 
     if len(argv) == 0:
         arg_parser.print_usage()
-        return
+        return 0
     opt = arg_parser.parse_args(argv)
 
     if opt.out_directory is not None:
@@ -126,15 +127,15 @@ def __main__(argv):
             try:
                 os.makedirs(opt.out_directory, exist_ok=True)
             except:
-                print(f"Could not generate output directory '{opt.out_directory}'.");
-                return
+                print(f"ERROR: Could not generate output directory '{opt.out_directory}'.", file=stderr);
+                return 1
 
     font = None
     try:
         font = ImageFont.truetype(opt.font_family, opt.font_size)
     except OSError:
-        print(f"Could not load font '{opt.font_family}'.")
-        return
+        print(f"ERROR: Could not load font '{opt.font_family}'.", file=stderr)
+        return 1
 
     today = datetime.today()
     for idx in range(len(opt.text)):
@@ -157,28 +158,34 @@ def __main__(argv):
         filepath = os.path.join(opt.out_directory, filename)
         print(f"Generating '{filepath}'...")
 
-        generate_text_image(
-            text,
-            font=font,
-            fill_color=opt.fill_color,
-            stroke_width=opt.stroke_width,
-            stroke_color=opt.stroke_color,
-            multiline_align=opt.multiline_align,
-            multiline_spacing=opt.multiline_spacing,
-            baseline_align=opt.baseline_align,
-            background_color=opt.background_color,
-            shadow_color=opt.shadow_color,
-            shadow_color_blend=opt.shadow_color_blend,
-            shadow_offset=opt.shadow_offset,
-            shadow_blur=opt.shadow_blur,
-            padx=opt.padx,
-            pady=opt.pady,
-            padding=opt.padding,
-            aspect_ratio=opt.aspect_ratio,
-            min_size=opt.min_size,
-        ).save(filepath, format="png")
+        try:
+            generate_text_image(
+                text,
+                font=font,
+                fill_color=opt.fill_color,
+                stroke_width=opt.stroke_width,
+                stroke_color=opt.stroke_color,
+                multiline_align=opt.multiline_align,
+                multiline_spacing=opt.multiline_spacing,
+                baseline_align=opt.baseline_align,
+                background_color=opt.background_color,
+                shadow_color=opt.shadow_color,
+                shadow_color_blend=opt.shadow_color_blend,
+                shadow_offset=opt.shadow_offset,
+                shadow_blur=opt.shadow_blur,
+                padx=opt.padx,
+                pady=opt.pady,
+                padding=opt.padding,
+                aspect_ratio=opt.aspect_ratio,
+                min_size=opt.min_size,
+            ).save(filepath, format="png")
+        except:
+            print(f"ERROR: Could not generate '{filepath}'.", file=stderr)
+            traceback.print_exc(file=stderr)
+            return 1
     print(f"Generated all {len(opt.text)} files.")
+    return 0
 
 if __name__ == "__main__":
-    from sys import argv
-    __main__(argv.copy())
+    from sys import argv, exit
+    exit(__main__(argv.copy()))
