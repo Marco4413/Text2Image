@@ -189,7 +189,9 @@ def generate_text_image(
     shadow_offset: Vec2=(0,0),
     shadow_blur: float=0.0, # if <= 0.0 it's disabled, ImageFilter.BoxBlur is used
     # output settings
-    padding: Vec2=(0,0),
+    padx: Vec2=(0,0),
+    pady: Vec2=(0,0),
+    padding: Vec2=None,
     aspect_ratio: float=-1.0,
     min_size: Vec2=None,
 ) -> Image.Image:
@@ -217,7 +219,10 @@ def generate_text_image(
     :param bool shadow_color_blend: Whether to blend shadow_color with the text color.
     :param Vec2 shadow_offset: Offset used for the text shadow.
     :param float shadow_blur: Intensity of the blur applied to the text shadow. If 0, none is applied.
-    :param Vec2 padding: The minimum padding around the text.
+    :param Vec2 padx: The horizontal padding around the text (left, right).
+    :param Vec2 pady: The vertical padding around the text (top, bottom).
+    :param padding: The padding around the text (horizontal, vertical). If specified padx and pady are overridden.
+    :type padding: Vec2 or None
     :param aspect_ratio: The aspect ratio of the resulting image. If <= 0, the image is shrunk to fit the text+padding.
     :type aspect_ratio: float or None
     :param min_size: If the image is smaller in width or height than the ones provided then it's expanded to those.
@@ -262,10 +267,14 @@ def generate_text_image(
         # Set shadow_offset to 0 so we can safely use it when no shadow is present
         shadow_offset = (0,0)
 
-    x = padding[0]
-    y = padding[1]
-    width = text_image.width + 2*padding[0]
-    height = text_image.height + 2*padding[1]
+    if padding is not None:
+        padx = (padding[0], padding[0])
+        pady = (padding[1], padding[1])
+
+    x = padx[0]
+    y = pady[0]
+    width = text_image.width + padx[0]+padx[1]
+    height = text_image.height + pady[0]+pady[1]
     if shadow is not None:
         if shadow_offset[0] >= 0:
             width += shadow_offset[0]
@@ -329,8 +338,8 @@ def generate_text_image(
         if baseline_align != "none":
             # Calculate lower and upper bounds
             # Min and Max y values to keep the text+shadow within bounds+padding
-            lower_bounds = padding[1] - min(0, shadow_offset[1])
-            upper_bounds = height - (padding[1]+text_image.height+max(0, shadow_offset[1]))
+            lower_bounds = pady[0] - min(0, shadow_offset[1])
+            upper_bounds = height - (pady[1]+text_image.height+max(0, shadow_offset[1]))
 
             new_y = y+baseline_offset
             # Clamp new_y between lower_bounds and upper_bounds

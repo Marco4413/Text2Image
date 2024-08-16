@@ -94,7 +94,7 @@ def __main__(argv):
     arg_parser.add_argument("-outfile", "--out-filename", type=str, metavar="OUT_FILENAME", default="{default_filename}", help="the output filename template for each text (default: '%(default)s')")
 
     font_path = os.path.join(os.path.dirname(__file__), "JetBrainsMono.ttf")
-    arg_parser.add_argument("-ff", "--font-family", type=str, metavar="FONT_FAMILY", default=font_path, help="the font family to use (default: JetBrainsMono)")
+    arg_parser.add_argument("-ff", "--font-family", type=str, metavar="FONT_FAMILY", default=font_path, help="the font family to use. can also be a path to a truetype font file (default: 'JetBrainsMono.ttf')")
     arg_parser.add_argument("-fs", "--font-size", type=measure_type, metavar=get_measure_format(), default="32pt", help="the font size to use (default: %(default)s)")
     arg_parser.add_argument("-fg", "--fill-color", type=color, metavar=get_color_format(), default="0xE6E2E1", help="the color to fill the text with (default: %(default)s)")
     arg_parser.add_argument("-stw", "--stroke-width", type=measure_type, metavar=get_measure_format(), default="0px", help="the width of the stroke used to draw the text (default: %(default)s)")
@@ -109,7 +109,9 @@ def __main__(argv):
     arg_parser.add_argument("-sho", "--shadow-offset", type=vec2_type, metavar=get_vec2_format(), default="0,0", help="the offset of the text shadow (default: %(default)s)")
     arg_parser.add_argument("-shb", "--shadow-blur", type=float, metavar="SHADOW_BLUR", default=-1.0, help="the intensity of the blur applied to the text shadow. none if <= 0 (default: %(default)s)")
 
-    arg_parser.add_argument("-pad", "--padding", type=positive_vec2_type, metavar=get_vec2_format(), default="0,0", help="the padding applied between the text and the border of the image (default: %(default)s)")
+    arg_parser.add_argument("-padx", "--padding-x", dest="padx", type=positive_vec2_type, metavar="<L,R>", default="0,0", help="the horizontal padding applied to the left and right of the text (default: %(default)s)")
+    arg_parser.add_argument("-pady", "--padding-y", dest="pady", type=positive_vec2_type, metavar="<T,B>", default="0,0", help="the vertical padding applied to the top and bottom of the text (default: %(default)s)")
+    arg_parser.add_argument("-pad", "--padding", type=positive_vec2_type, metavar=get_vec2_format(), default=None, help="this setting overrides padx and pady. sets both horizontal and vertical padding")
     arg_parser.add_argument("-aspect", "--aspect-ratio", type=ratio_type, metavar=get_ratio_format(), help="the desired aspect ratio of the output image. fit to text if <= 0 or None. calculated from min-size if provided and aspect-ratio is None (default: %(default)s)")
     arg_parser.add_argument("-size", "--min-size", type=positive_vec2_type, metavar=get_vec2_format(), help="the minimum size of the image. if the text does not fit, the image is expanded (default: %(default)s)")
 
@@ -168,6 +170,8 @@ def __main__(argv):
             shadow_color_blend=opt.shadow_color_blend,
             shadow_offset=opt.shadow_offset,
             shadow_blur=opt.shadow_blur,
+            padx=opt.padx,
+            pady=opt.pady,
             padding=opt.padding,
             aspect_ratio=opt.aspect_ratio,
             min_size=opt.min_size,
