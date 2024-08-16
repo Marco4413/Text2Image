@@ -85,16 +85,17 @@ def __main__(argv):
     program = argv.pop(0)
     arg_parser = argparse.ArgumentParser(
         prog=program,
+        usage="%(prog)s [-h | --help] [option ...] [--] text [text ...]",
         description="A Text to Image generator.",
     )
 
     # TODO: Do a pass of help prompts and defaults
     arg_parser.add_argument("text", help="the text to generate an images of. each text is put into its own file based on out-filename", nargs="+")
-    arg_parser.add_argument("-outdir", "--out-directory", type=str, metavar="OUT_DIRECTORY", default=".", help="the output directory for the generated images (default: '%(default)s')")
-    arg_parser.add_argument("-outfile", "--out-filename", type=str, metavar="OUT_FILENAME", default="{default_filename}", help="the output filename template for each text (default: '%(default)s')")
+    arg_parser.add_argument("-outdir", "--out-directory", type=str, metavar="<OUT_DIRECTORY>", default=".", help="the output directory for the generated images (default: '%(default)s')")
+    arg_parser.add_argument("-outfile", "--out-filename", type=str, metavar="<OUT_FILENAME>", default="{default_filename}", help="the output filename template for each text (default: '%(default)s')")
 
     font_path = os.path.join(os.path.dirname(__file__), "JetBrainsMono.ttf")
-    arg_parser.add_argument("-ff", "--font-family", type=str, metavar="FONT_FAMILY", default=font_path, help="the font family to use. can also be a path to a truetype font file (default: 'JetBrainsMono.ttf')")
+    arg_parser.add_argument("-ff", "--font-family", type=str, metavar="<FONT_FAMILY>", default=font_path, help="the font family to use. can also be a path to a truetype font file (default: 'JetBrainsMono.ttf')")
     arg_parser.add_argument("-fs", "--font-size", type=measure_type, metavar=get_measure_format(), default="32pt", help="the font size to use (default: %(default)s)")
     arg_parser.add_argument("-fg", "--fill-color", type=color, metavar=get_color_format(), default="0xE6E2E1", help="the color to fill the text with (default: %(default)s)")
     arg_parser.add_argument("-stw", "--stroke-width", type=measure_type, metavar=get_measure_format(), default="0px", help="the width of the stroke used to draw the text (default: %(default)s)")
@@ -107,7 +108,7 @@ def __main__(argv):
     arg_parser.add_argument("-sh", "--shadow-color", type=color, metavar=get_color_format(), default="transparent", help="the color used for text shadows (default: %(default)s)")
     arg_parser.add_argument("--no-shadow-blend", dest="shadow_color_blend", action="store_false", help="whether to blend the shadow color with the text color (default: %(default)s)")
     arg_parser.add_argument("-sho", "--shadow-offset", type=vec2_type, metavar=get_vec2_format(), default="0,0", help="the offset of the text shadow (default: %(default)s)")
-    arg_parser.add_argument("-shb", "--shadow-blur", type=float, metavar="SHADOW_BLUR", default=-1.0, help="the intensity of the blur applied to the text shadow. none if <= 0 (default: %(default)s)")
+    arg_parser.add_argument("-shb", "--shadow-blur", type=float, metavar="<SHADOW_BLUR>", default=-1.0, help="the intensity of the blur applied to the text shadow. none if <= 0 (default: %(default)s)")
 
     arg_parser.add_argument("-padx", "--padding-x", dest="padx", type=positive_vec2_type, metavar="<L,R>", default="0,0", help="the horizontal padding applied to the left and right of the text (default: %(default)s)")
     arg_parser.add_argument("-pady", "--padding-y", dest="pady", type=positive_vec2_type, metavar="<T,B>", default="0,0", help="the vertical padding applied to the top and bottom of the text (default: %(default)s)")
@@ -116,7 +117,7 @@ def __main__(argv):
     arg_parser.add_argument("-size", "--min-size", type=positive_vec2_type, metavar=get_vec2_format(), help="the minimum size of the image. if the text does not fit, the image is expanded (default: %(default)s)")
 
     if len(argv) == 0:
-        arg_parser.print_help()
+        arg_parser.print_usage()
         return
     opt = arg_parser.parse_args(argv)
 
