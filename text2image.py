@@ -355,7 +355,7 @@ def generate_text_image(
     
     if shadow is not None:
         image.alpha_composite(shadow, (x+shadow_offset[0],y+shadow_offset[1]))
-        if shadow_blur >= 0.0:
+        if shadow_blur > 0.0:
             image = image.filter(ImageFilter.BoxBlur(shadow_blur))
 
     image.alpha_composite(text_image, (x,y))
