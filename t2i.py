@@ -20,6 +20,8 @@ https://github.com/Marco4413/Text2Image
 
 from text2image import *
 
+import argparse as _argparse
+
 def get_measure_format() -> str:
     return "<PIXELS | Npx | Npt>"
 
@@ -72,50 +74,147 @@ def positive_vec2_type(vec2_str: str) -> Vec2:
 def get_color_format() -> str:
     return "<transparent | R,G,B | 0xL | 0xLL | 0xRGB | 0xRRGGBB>"
 
-def get_alignment_format() -> str:
-    return "<left | center | right>"
+class _CustomHelpFormatter(_argparse.HelpFormatter):
+    """Custom HelpFormatter from argparse which fits the needs of t2i's CLI"""
 
-def get_baseline_format() -> str:
-    return "<none | broad | perfect>"
+    # Copied from the base class and changed choices formatting.
+    def _metavar_formatter(self, action, default_metavar):
+        if action.metavar is not None:
+            result = action.metavar
+        elif action.choices is not None:
+            choice_strs = [str(choice) for choice in action.choices]
+            result = '<%s>' % ' | '.join(choice_strs)
+        else:
+            result = default_metavar
+
+        def format(tuple_size):
+            if isinstance(result, tuple):
+                return result
+            else:
+                return (result, ) * tuple_size
+        return format
+    # Copied from the base class method. The only change is metavars only being shown for the full option:
+    # -fg, --fill-color <transparent | R,G,B | 0xL | 0xLL | 0xRGB | 0xRRGGBB>
+    # Which is cleaner when metavars explain the format of the var.
+    def _format_action_invocation(self, action: _argparse.Action) -> str:
+        if not action.option_strings:
+            default = self._get_default_metavar_for_positional(action)
+            metavar, = self._metavar_formatter(action, default)(1)
+            return metavar
+        else:
+            parts = []
+            # if the Optional doesn't take a value, format is:
+            #    -s, --long
+            if action.nargs == 0:
+                parts.extend(action.option_strings)
+            # if the Optional takes a value, format is:
+            #    -s, --long ARGS
+            else:
+                default = self._get_default_metavar_for_optional(action)
+                args_string = self._format_args(action, default)
+                for option_string in action.option_strings:
+                    if option_string.startswith("--"):
+                        parts.append("%s %s" % (option_string, args_string))
+                    else:
+                        parts.append(option_string)
+            return ", ".join(parts)
+    # Copied from _argparse.ArgumentDefaultsHelpFormatter.
+    # This won't emit the default if it's None or a bool.
+    def _get_help_string(self, action: _argparse.Action) -> str:
+        import textwrap
+        help = "" if action.help is None else textwrap.dedent(action.help).strip()
+        if (action.default is not _argparse.SUPPRESS
+            and action.default is not None
+            and not isinstance(action, _argparse._StoreConstAction)
+            and "default:" not in help
+        ):
+            defaulting_nargs = [_argparse.OPTIONAL, _argparse.ZERO_OR_MORE]
+            if action.option_strings or action.nargs in defaulting_nargs:
+                help += "\n(default: %(default)s)"
+        return help
+    # Based on _argparse.RawDescriptionHelpFormatter
+    # This seems the only method that handles descriptions?
+    def _fill_text(self, text: str, width: int, indent: str) -> str:
+        import textwrap
+        return "\n".join(indent + line.strip() for line in text.splitlines())
+    def _split_lines(self, text: str, width: int) -> list:
+        import textwrap
+        def count_indent(text: str) -> int:
+            count = 0
+            for ch in text:
+                if not ch.isspace(): break
+                count += 1
+            return count
+        text_lines = []
+        for line in textwrap.dedent(text).strip().splitlines():
+            line_indent = count_indent(line)
+            wrapped_lines = textwrap.wrap(line, width, subsequent_indent=(" " * line_indent))
+            text_lines.extend(wrapped_lines)
+        text_lines.append("")
+        return text_lines
 
 def __main__(argv) -> int:
-    import argparse, os, traceback
+    import os, traceback
     from datetime import datetime
     from sys import stderr
 
     program = argv.pop(0)
-    arg_parser = argparse.ArgumentParser(
+    arg_parser = _argparse.ArgumentParser(
         prog=program,
         usage="%(prog)s [-h | --help] [option ...] [--] text [text ...]",
-        description="A Text to Image generator.",
+        description="""
+            A Text to Image generator.
+
+            A bunch of images can be generated with a single command:
+            $ %(prog)s -outdir out -- 0 1 2 3 4 5 6 7 8 9
+
+            All options are applied to all images.
+        """,
+        formatter_class=_CustomHelpFormatter,
     )
 
-    # TODO: Do a pass of help prompts and defaults
-    arg_parser.add_argument("text", help="the text to generate an images of. each text is put into its own file based on out-filename", nargs="+")
-    arg_parser.add_argument("-outdir", "--out-directory", type=str, metavar="<OUT_DIRECTORY>", default=".", help="the output directory for the generated images (default: '%(default)s')")
-    arg_parser.add_argument("-outfile", "--out-filename", type=str, metavar="<OUT_FILENAME>", default="{default_filename}", help="the output filename template for each text (default: '%(default)s')")
+    arg_parser.add_argument("text", help="the text to generate images of.\neach text is put into its own file based on out-filename.\nthe following escape sequences can be used in the text: \\n, \\\\", nargs="+")
+    arg_parser.add_argument("-outdir", "--out-directory", type=str, metavar="<OUT_DIRECTORY>", default=".", help="the output directory for the generated images\n(default: '%(default)s')")
+    arg_parser.add_argument("-outfile", "--out-filename", type=str, metavar="<OUT_FILENAME>", default="{default_filename}", help="""
+        the output filename template for each text.
+        the '.png' extension is appended to the name if not already specified.
+        you can use the following variables within the template:
+            - {idx} the index at which the text was provided
+            - {default_filename} the default name provided to the text (a version of the text where all special characters are stripped out)
+            - {year}, {month}, {day}, {hour}, {minute}, {second} the date at which the COMMAND was ran (not at which the text was generated)
+        e.g. 'char_{default_filename}'
+        (default: '%(default)s')
+    """)
 
     font_path = os.path.join(os.path.dirname(__file__), "JetBrainsMono.ttf")
-    arg_parser.add_argument("-ff", "--font-family", type=str, metavar="<FONT_FAMILY>", default=font_path, help="the font family to use. can also be a path to a truetype font file (default: 'JetBrainsMono.ttf')")
-    arg_parser.add_argument("-fs", "--font-size", type=measure_type, metavar=get_measure_format(), default="32pt", help="the font size to use (default: %(default)s)")
-    arg_parser.add_argument("-fg", "--fill-color", type=color, metavar=get_color_format(), default="0xE6E2E1", help="the color to fill the text with (default: %(default)s)")
-    arg_parser.add_argument("-stw", "--stroke-width", type=measure_type, metavar=get_measure_format(), default="0px", help="the width of the stroke used to draw the text (default: %(default)s)")
-    arg_parser.add_argument("-st", "--stroke-color", type=color, metavar=get_color_format(), default="transparent", help="the color of the stroke used to draw the text (default: %(default)s)")
-    arg_parser.add_argument("-align", "--multiline-align", choices=["left","center","right"], metavar=get_alignment_format(), default="center", help="the alignment used for multiline text (default: %(default)s)")
-    arg_parser.add_argument("-spacing", "--multiline-spacing", type=any_measure_type, metavar=get_measure_format(), default="4px", help="the spacing between lines in multiline text. may be a negative value (default: %(default)s)")
+    arg_parser.add_argument("-ff", "--font-family", type=str, metavar="<FONT_FAMILY>", default=font_path, help="the font family to use.\ncan also be a path to a truetype font file\n(default: '%(default)s')")
+    arg_parser.add_argument("-fs", "--font-size", type=measure_type, metavar=get_measure_format(), default="32pt", help="the font size to use")
+    arg_parser.add_argument("-fg", "--fill-color", type=color, metavar=get_color_format(), default="0xE6E2E1", help="the color to fill the text with")
+    arg_parser.add_argument("-stw", "--stroke-width", type=measure_type, metavar=get_measure_format(), default="0px", help="the width of the stroke used to draw the text")
+    arg_parser.add_argument("-st", "--stroke-color", type=color, metavar=get_color_format(), default="transparent", help="the color of the stroke used to draw the text")
+    arg_parser.add_argument("-align", "--multiline-align", choices=["left","center","right"], default="center", help="the alignment used for multiline text")
+    arg_parser.add_argument("-spacing", "--multiline-spacing", type=any_measure_type, metavar=get_measure_format(), default="4px", help="the spacing between lines in multiline text.\nmay be a negative value")
 
-    arg_parser.add_argument("-baseline", "--baseline-align", choices=["none","broad","perfect"], metavar=get_baseline_format(), default="none", help="*DOES NOTHING FOR MULTI-LINE TEXT* the kind of alignment used to center the text based on its baseline. if 'none' it's perfectly centered based on the text height (default: %(default)s)")
-    arg_parser.add_argument("-bg", "--background-color", type=color, metavar=get_color_format(), default="transparent", help="the color used as the background of the image (default: %(default)s)")
-    arg_parser.add_argument("-sh", "--shadow-color", type=color, metavar=get_color_format(), default="transparent", help="the color used for text shadows (default: %(default)s)")
-    arg_parser.add_argument("--no-shadow-blend", dest="shadow_color_blend", action="store_false", help="whether to blend the shadow color with the text color (default: %(default)s)")
-    arg_parser.add_argument("-sho", "--shadow-offset", type=vec2_type, metavar=get_vec2_format(), default="0,0", help="the offset of the text shadow (default: %(default)s)")
-    arg_parser.add_argument("-shb", "--shadow-blur", type=float, metavar="<SHADOW_BLUR>", default=-1.0, help="the intensity of the blur applied to the text shadow. none if <= 0 (default: %(default)s)")
+    arg_parser.add_argument("-baseline", "--baseline-align", choices=["none","broad","perfect"], default="none", help="""
+        * DOES NOTHING FOR MULTI-LINE TEXT
+        * THIS SETTING MUST BE USED WITH THE min-size SETTING
+        the kind of alignment used to center the text based on its baseline.
+            none    - centered based on the full height of the text
+            broad   - centered based on the part of the text above the baseline
+            perfect - the baseline of the text is at the center of the image
+        the position of the text is ultimately clamped to stay within the image, make sure to have enough space to fit the text
+    """)
+    arg_parser.add_argument("-bg", "--background-color", type=color, metavar=get_color_format(), default="transparent", help="the color used as the background of the image")
+    arg_parser.add_argument("-sh", "--shadow-color", type=color, metavar=get_color_format(), default="transparent", help="the color used for text shadows")
+    arg_parser.add_argument("--no-shadow-blend", dest="shadow_color_blend", action="store_false", help="disables blending the shadow color with the text color")
+    arg_parser.add_argument("-sho", "--shadow-offset", type=vec2_type, metavar=get_vec2_format(), default="0,0", help="the offset of the text shadow")
+    arg_parser.add_argument("-shb", "--shadow-blur", type=float, metavar="<SHADOW_BLUR>", default=0.0, help="the intensity of the blur applied to the text shadow.\nnone if <= 0")
 
-    arg_parser.add_argument("-padx", "--padding-x", dest="padx", type=positive_vec2_type, metavar="<L,R>", default="0,0", help="the horizontal padding applied to the left and right of the text (default: %(default)s)")
-    arg_parser.add_argument("-pady", "--padding-y", dest="pady", type=positive_vec2_type, metavar="<T,B>", default="0,0", help="the vertical padding applied to the top and bottom of the text (default: %(default)s)")
-    arg_parser.add_argument("-pad", "--padding", type=positive_vec2_type, metavar=get_vec2_format(), default=None, help="this setting overrides padx and pady. sets both horizontal and vertical padding")
-    arg_parser.add_argument("-aspect", "--aspect-ratio", type=ratio_type, metavar=get_ratio_format(), help="the desired aspect ratio of the output image. fit to text if <= 0 or None. calculated from min-size if provided and aspect-ratio is None (default: %(default)s)")
-    arg_parser.add_argument("-size", "--min-size", type=positive_vec2_type, metavar=get_vec2_format(), help="the minimum size of the image. if the text does not fit, the image is expanded (default: %(default)s)")
+    arg_parser.add_argument("-padx", "--padding-x", dest="padx", type=positive_vec2_type, metavar="<L,R>", default="0,0", help="the horizontal padding applied to the left and right of the text")
+    arg_parser.add_argument("-pady", "--padding-y", dest="pady", type=positive_vec2_type, metavar="<T,B>", default="0,0", help="the vertical padding applied to the top and bottom of the text")
+    arg_parser.add_argument("-pad", "--padding", type=positive_vec2_type, metavar=get_vec2_format(), default=None, help="this setting overrides padx and pady.\nsets both horizontal and vertical padding")
+    arg_parser.add_argument("-aspect", "--aspect-ratio", type=ratio_type, metavar=get_ratio_format(), help="the desired aspect ratio of the output image.\nfit to text if <= 0 or not specified.\ncalculated from min-size if provided and this setting is not")
+    arg_parser.add_argument("-size", "--min-size", type=positive_vec2_type, metavar=get_vec2_format(), help="the minimum size of the image.\nif the text does not fit, the image is expanded")
 
     if len(argv) == 0:
         arg_parser.print_usage()
