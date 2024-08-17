@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/usr/bin/env python3
 
 """
 An image from text generator for Python 3.12 using Pillow
