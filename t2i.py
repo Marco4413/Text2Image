@@ -207,6 +207,14 @@ def __main__(argv) -> int:
     arg_parser.add_argument("-bg", "--background-color", type=color, metavar=get_color_format(), default="transparent", help="the color used as the background of the image")
     arg_parser.add_argument("-sh", "--shadow-color", type=color, metavar=get_color_format(), default="transparent", help="the color used for text shadows")
     arg_parser.add_argument("--no-shadow-blend", dest="shadow_color_blend", action="store_false", help="disables blending the shadow color with the text color")
+    arg_parser.add_argument("--shadow-blend-method", dest="shadow_color_blend_method", choices=("grayscale+","grayscale","luminance"), default="grayscale+", help="""
+        * DOES NOTHING IF no-shadow-blend IS SPECIFIED
+        the method to use for blending the shadow color with the text color.
+            grayscale+ - blends with a brighter grayscale of the text
+            grayscale  - blends with the pure grayscale of the text
+            luminance  - blends with the luminance of the text
+        blending is currently done on a pixel basis and not with some average of the whole text
+    """)
     arg_parser.add_argument("-sho", "--shadow-offset", type=vec2_type, metavar=get_vec2_format(), default="0,0", help="the offset of the text shadow")
     arg_parser.add_argument("-shb", "--shadow-blur", type=float, metavar="<SHADOW_BLUR>", default=0.0, help="the intensity of the blur applied to the text shadow.\nnone if <= 0")
 
@@ -270,6 +278,7 @@ def __main__(argv) -> int:
                 background_color=opt.background_color,
                 shadow_color=opt.shadow_color,
                 shadow_color_blend=opt.shadow_color_blend,
+                shadow_color_blend_method=opt.shadow_color_blend_method,
                 shadow_offset=opt.shadow_offset,
                 shadow_blur=opt.shadow_blur,
                 padx=opt.padx,

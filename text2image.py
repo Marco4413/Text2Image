@@ -27,6 +27,7 @@ Vec2      = Tuple[int,int]
 RGBColor  = Tuple[int,int,int]
 Alignment = Literal["left","center","right"]
 BaselineAlignment = Literal["none","broad","perfect"]
+ColorizeMethod    = Literal["grayscale+","grayscale","luminance"]
 
 def sanitize_filename(filename: str) -> str:
     """Replaces all path-unsafe characters from filename with safe ones."""
@@ -87,16 +88,23 @@ def color(color_str: str) -> Optional[RGBColor]:
             raise ValueError("A color is a triple of comma-separated positive integers RGB values in the range of [0,255].")
     return rgb_color
 
-def colorize_image(image: Image.Image, color: RGBColor) -> Image.Image:
+def colorize_image(image: Image.Image, color: RGBColor, *, method: ColorizeMethod="grayscale+") -> Image.Image:
     """Sets every pixel of the given image to color*average_pixel_color"""
+    # get_color_factor must return a positive value. the closer to the range [0,1] the better
+    if method == "grayscale+":
+        def get_color_factor(r, g, b): return (r+g+b)/255.0
+    elif method == "grayscale":
+        def get_color_factor(r, g, b): return (r+g+b)/(255.0*3.0)
+    elif method == "luminance":
+        # https://en.wikipedia.org/wiki/Relative_luminance
+        def get_color_factor(r, g, b): return (0.2126*r + 0.7152*g + 0.0722*b)/255.0
+    else:
+        raise ValueError("colorize_image method must be one of 'grayscale+', 'grayscale', 'luminance'.")
     image_pixels = image.load()
     for i in range(image.size[0]):
         for j in range(image.size[1]):
             pixel = image_pixels[i,j]
-            # TODO: Add different methods of applying colorize
-            # This value is in the range of 0 to 3
-            # This expression is like this by mistake but I think the effect looks cool
-            color_factor = (pixel[0]+pixel[1]+pixel[2])/255.0
+            color_factor = get_color_factor(pixel[0], pixel[1], pixel[2])
             image_pixels[i,j] = (
                 min(int(color[0]*color_factor), 255),
                 min(int(color[1]*color_factor), 255),
@@ -189,6 +197,7 @@ def generate_text_image(
     background_color: RGBColor=None,
     shadow_color: RGBColor=None,
     shadow_color_blend: bool=True,
+    shadow_color_blend_method: ColorizeMethod="grayscale+",
     shadow_offset: Vec2=(0,0),
     shadow_blur: float=0.0, # if <= 0.0 it's disabled, ImageFilter.BoxBlur is used
     # output settings
@@ -220,6 +229,7 @@ def generate_text_image(
     :param shadow_color: The color for the text shadow. If None, no shadow is generated.
     :type shadow_color: RGBColor or None
     :param bool shadow_color_blend: Whether to blend shadow_color with the text color.
+    :param ColorizeMethod shadow_color_blend_method: How shadow blending is calculated.
     :param Vec2 shadow_offset: Offset used for the text shadow.
     :param float shadow_blur: Intensity of the blur applied to the text shadow. If 0, none is applied.
     :param Vec2 padx: The horizontal padding around the text (left, right).
@@ -255,9 +265,9 @@ def generate_text_image(
     if shadow_color is not None:
         # Can't check for shadow_offset != (0,0) because the shadow may be blurred
         if shadow_color_blend:
-            shadow = colorize_image(text_image.copy(), shadow_color)
+            shadow = colorize_image(text_image.copy(), shadow_color, method=shadow_color_blend_method)
         else:
-            (shadow, _) = new_image_from_text(
+            (shadow,) = new_image_from_text(
                 text,
                 font=font, font_size=font_size,
                 stroke_width=stroke_width,
