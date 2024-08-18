@@ -93,11 +93,14 @@ def colorize_image(image: Image.Image, color: RGBColor) -> Image.Image:
     for i in range(image.size[0]):
         for j in range(image.size[1]):
             pixel = image_pixels[i,j]
-            average_color = (pixel[0]+pixel[1]+pixel[2])/255.0
+            # TODO: Add different methods of applying colorize
+            # This value is in the range of 0 to 3
+            # This expression is like this by mistake but I think the effect looks cool
+            color_factor = (pixel[0]+pixel[1]+pixel[2])/255.0
             image_pixels[i,j] = (
-                int(color[0]*average_color),
-                int(color[1]*average_color),
-                int(color[2]*average_color),
+                min(int(color[0]*color_factor), 255),
+                min(int(color[1]*color_factor), 255),
+                min(int(color[2]*color_factor), 255),
                 pixel[3]
             )
     return image
