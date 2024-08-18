@@ -22,11 +22,11 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import re, os.path as os_path
 
 # Try to keep backwards compatibility with Python 3.8
-from typing import Tuple, Union
+from typing import Tuple, Optional, Literal
 Vec2      = Tuple[int,int]
 RGBColor  = Tuple[int,int,int]
-Alignment = Union["left","center","right"]
-BaselineAlignment = Union["none","broad","perfect"]
+Alignment = Literal["left","center","right"]
+BaselineAlignment = Literal["none","broad","perfect"]
 
 def sanitize_filename(filename: str) -> str:
     """Replaces all path-unsafe characters from filename with safe ones."""
@@ -42,7 +42,7 @@ def sanitize_filename(filename: str) -> str:
 def px(x): return x
 def pt(x): return int(x * (96.0/72.0))
 
-def color(color_str: str) -> Union[RGBColor, None]:
+def color(color_str: str) -> Optional[RGBColor]:
     """
     Converts a string into an RGB color.
 
@@ -111,7 +111,7 @@ def new_image_from_text(
     font: ImageFont=None,
     font_size: int=None,
     padding: Vec2=(0,0),
-    fill_color: Union[RGBColor, None]=(0,0,0),
+    fill_color: Optional[RGBColor]=(0,0,0),
     stroke_width: int=0,
     stroke_color: RGBColor=None,
     multiline_align: Alignment="center",
@@ -179,7 +179,7 @@ def generate_text_image(
     # text settings
     font: ImageFont=None,
     font_size: int=None,
-    fill_color: Union[RGBColor, None]=(0,0,0),
+    fill_color: Optional[RGBColor]=(0,0,0),
     stroke_width: int=0,
     stroke_color: RGBColor=None,
     multiline_align: Alignment="center",
