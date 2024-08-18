@@ -192,10 +192,10 @@ def __main__(argv) -> int:
     arg_parser.add_argument("-fg", "--fill-color", type=color, metavar=get_color_format(), default="0xE6E2E1", help="the color to fill the text with")
     arg_parser.add_argument("-stw", "--stroke-width", type=measure_type, metavar=get_measure_format(), default="0px", help="the width of the stroke used to draw the text")
     arg_parser.add_argument("-st", "--stroke-color", type=color, metavar=get_color_format(), default="transparent", help="the color of the stroke used to draw the text")
-    arg_parser.add_argument("-align", "--multiline-align", choices=["left","center","right"], default="center", help="the alignment used for multiline text")
+    arg_parser.add_argument("-align", "--multiline-align", choices=("left","center","right"), default="center", help="the alignment used for multiline text")
     arg_parser.add_argument("-spacing", "--multiline-spacing", type=any_measure_type, metavar=get_measure_format(), default="4px", help="the spacing between lines in multiline text.\nmay be a negative value")
 
-    arg_parser.add_argument("-baseline", "--baseline-align", choices=["none","broad","perfect"], default="none", help="""
+    arg_parser.add_argument("-baseline", "--baseline-align", choices=("none","broad","perfect"), default="none", help="""
         * DOES NOTHING FOR MULTI-LINE TEXT
         * THIS SETTING MUST BE USED WITH THE min-size SETTING
         the kind of alignment used to center the text based on its baseline.
