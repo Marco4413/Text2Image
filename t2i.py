@@ -158,7 +158,7 @@ def __main__(argv) -> int:
     from datetime import datetime
     from sys import stderr
 
-    program = argv.pop(0)
+    program = os.path.basename(argv.pop(0))
     arg_parser = _argparse.ArgumentParser(
         prog=program,
         usage="%(prog)s [-h | --help] [option ...] [--] text [text ...]",
