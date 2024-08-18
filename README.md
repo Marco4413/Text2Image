@@ -106,9 +106,9 @@ Basically, if you want to develop a Python script, you should import
 
 ## Requirements
 
-This project was developed for Python 3.12
+This project was developed for Python 3.12 (and 3.8 since I have that installed in WSL)
 
 You'll also need the following Python modules:
-- pillow 10.4.0
+- pillow 10.4.0 (may also work with 10.1.0)
 
 `$ pip install Pillow`
