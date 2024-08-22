@@ -116,12 +116,12 @@ def colorize_image(image: Image.Image, color: RGBColor, *, method: ColorizeMetho
 def new_image_from_text(
     text: str, *,
     # text settings
-    font: ImageFont=None,
-    font_size: int=None,
+    font: Optional[ImageFont.FreeTypeFont]=None,
+    font_size: Optional[int]=None,
     padding: Vec2=(0,0),
     fill_color: Optional[RGBColor]=(0,0,0),
     stroke_width: int=0,
-    stroke_color: RGBColor=None,
+    stroke_color: Optional[RGBColor]=None,
     multiline_align: Alignment="center",
     multiline_spacing: int=4,
 ) -> Tuple[Image.Image, int]:
@@ -185,17 +185,17 @@ def new_image_from_text(
 def generate_text_image(
     text: str, *,
     # text settings
-    font: ImageFont=None,
-    font_size: int=None,
+    font: Optional[ImageFont.FreeTypeFont]=None,
+    font_size: Optional[int]=None,
     fill_color: Optional[RGBColor]=(0,0,0),
     stroke_width: int=0,
-    stroke_color: RGBColor=None,
+    stroke_color: Optional[RGBColor]=None,
     multiline_align: Alignment="center",
     multiline_spacing: int=4,
     # post-processing
     baseline_align: BaselineAlignment="none",
-    background_color: RGBColor=None,
-    shadow_color: RGBColor=None,
+    background_color: Optional[RGBColor]=None,
+    shadow_color: Optional[RGBColor]=None,
     shadow_color_blend: bool=True,
     shadow_color_blend_method: ColorizeMethod="grayscale+",
     shadow_offset: Vec2=(0,0),
@@ -203,9 +203,9 @@ def generate_text_image(
     # output settings
     padx: Vec2=(0,0),
     pady: Vec2=(0,0),
-    padding: Vec2=None,
+    padding: Optional[Vec2]=None,
     aspect_ratio: float=-1.0,
-    min_size: Vec2=None,
+    min_size: Optional[Vec2]=None,
 ) -> Image.Image:
     """
     Generate an image containing the specified text drawn with the specified settings.
@@ -267,7 +267,7 @@ def generate_text_image(
         if shadow_color_blend:
             shadow = colorize_image(text_image.copy(), shadow_color, method=shadow_color_blend_method)
         else:
-            (shadow,) = new_image_from_text(
+            (shadow, _) = new_image_from_text(
                 text,
                 font=font, font_size=font_size,
                 stroke_width=stroke_width,
@@ -358,12 +358,11 @@ def generate_text_image(
             # Clamp new_y between lower_bounds and upper_bounds
             y = min(max(new_y, lower_bounds), upper_bounds)
 
-    if background_color is None:
-        background_color = (0,0,0,0)
-    else:
-        background_color = (*background_color, 255)
+    full_background_color = (0,0,0,0)
+    if background_color is not None:
+        full_background_color = (*background_color, 255)
 
-    image = Image.new("RGBA", (width, height), background_color)
+    image = Image.new("RGBA", (width, height), full_background_color)
     draw = ImageDraw.Draw(image)
     
     if shadow is not None:
@@ -376,8 +375,8 @@ def generate_text_image(
 
 def generate_and_save_text_image(
     text: str, *,
-    out_directory: str=None,
-    out_filename: str=None,
+    out_directory: Optional[str]=None,
+    out_filename: Optional[str]=None,
     **kwargs
 ) -> Image.Image:
     """

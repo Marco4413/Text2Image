@@ -97,12 +97,13 @@ class _CustomHelpFormatter(_argparse.HelpFormatter):
     # -fg, --fill-color <transparent | R,G,B | 0xL | 0xLL | 0xRGB | 0xRRGGBB>
     # Which is cleaner when metavars explain the format of the var.
     def _format_action_invocation(self, action: _argparse.Action) -> str:
+        from typing import List
         if not action.option_strings:
             default = self._get_default_metavar_for_positional(action)
             metavar, = self._metavar_formatter(action, default)(1)
             return metavar
         else:
-            parts = []
+            parts: List[str] = []
             # if the Optional doesn't take a value, format is:
             #    -s, --long
             if action.nargs == 0:
@@ -135,7 +136,6 @@ class _CustomHelpFormatter(_argparse.HelpFormatter):
     # Based on _argparse.RawDescriptionHelpFormatter
     # This seems the only method that handles descriptions?
     def _fill_text(self, text: str, width: int, indent: str) -> str:
-        import textwrap
         return "\n".join(indent + line.strip() for line in text.splitlines())
     def _split_lines(self, text: str, width: int) -> list:
         import textwrap
