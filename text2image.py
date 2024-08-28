@@ -113,11 +113,20 @@ def colorize_image(image: Image.Image, color: RGBColor, *, method: ColorizeMetho
             )
     return image
 
+def is_libraqm_available() -> bool:
+    from PIL import features
+    return features.check_feature(feature="raqm")
+
+def get_opentype_ligature_features() -> tuple:
+    # https://learn.microsoft.com/en-us/typography/opentype/spec/featurelist
+    return ("calt","clig","dlig","hlig","liga","rlig",)
+
 def new_image_from_text(
     text: str, *,
     # text settings
     font: Optional[ImageFont.FreeTypeFont]=None,
     font_size: Optional[int]=None,
+    ligatures: bool=True,
     padding: Vec2=(0,0),
     fill_color: Optional[RGBColor]=(0,0,0),
     stroke_width: int=0,
@@ -136,6 +145,7 @@ def new_image_from_text(
     :type font: ImageFont or None
     :param font_size: The font size used if no font is provided.
     :type font_size: int or None
+    :param bool ligatures: Whether or not to enable ligatures (requires libraqm). If libraqm is not installed the value does not matter.
     :param fill_color: The color used to fill the text. Transparent if None.
     :type fill_color: RGBColor or None
     :param int stroke_width: The width of the stroke used to draw the text.
@@ -149,6 +159,12 @@ def new_image_from_text(
              For multi-line text it's the distance to the baseline of the first line.
     :rtype: (Image.Image, int)
     """
+    font_features = None
+    if is_libraqm_available():
+        font_features = get_opentype_ligature_features()
+        if not ligatures:
+            font_features = tuple(f"-{x}" for x in font_features)
+
     # get bbox for text
     image = Image.new("RGBA", (0,0), (0,0,0,0))
     draw = ImageDraw.Draw(image)
@@ -159,6 +175,7 @@ def new_image_from_text(
         font=font, font_size=font_size,
         stroke_width=stroke_width,
         spacing=multiline_spacing,
+        features=font_features,
     )
 
     # FOR SOME REASON bbox MAY CONTAIN 0.0 WHICH IS A FLOAT... WHY???
@@ -179,6 +196,7 @@ def new_image_from_text(
         spacing=multiline_spacing,
         fill=(0,0,0,0) if fill_color is None else fill_color,
         stroke_fill=(0,0,0,0) if stroke_color is None else stroke_color,
+        features=font_features,
     )
     return (image, int(bottom))
 
@@ -187,6 +205,7 @@ def generate_text_image(
     # text settings
     font: Optional[ImageFont.FreeTypeFont]=None,
     font_size: Optional[int]=None,
+    ligatures: bool=True,
     fill_color: Optional[RGBColor]=(0,0,0),
     stroke_width: int=0,
     stroke_color: Optional[RGBColor]=None,
@@ -216,6 +235,7 @@ def generate_text_image(
     :type font: ImageFont or None
     :param font_size: The font size used if no font is provided.
     :type font_size: int or None
+    :param bool ligatures: Whether or not to enable ligatures (requires libraqm). If libraqm is not installed the value does not matter.
     :param fill_color: The color used to fill the text. Transparent if None.
     :type fill_color: RGBColor or None
     :param int stroke_width: The width of the stroke used to draw the text.
@@ -246,7 +266,7 @@ def generate_text_image(
     """
     (text_image, text_descent) = new_image_from_text(
         text,
-        font=font, font_size=font_size,
+        font=font, font_size=font_size, ligatures=ligatures,
         stroke_width=stroke_width,
         multiline_align=multiline_align,
         multiline_spacing=multiline_spacing,
@@ -269,7 +289,7 @@ def generate_text_image(
         else:
             (shadow, _) = new_image_from_text(
                 text,
-                font=font, font_size=font_size,
+                font=font, font_size=font_size, ligatures=ligatures,
                 stroke_width=stroke_width,
                 multiline_align=multiline_align,
                 multiline_spacing=multiline_spacing,

@@ -189,6 +189,7 @@ def __main__(argv) -> int:
     font_path = os.path.join(os.path.dirname(__file__), "JetBrainsMono.ttf")
     arg_parser.add_argument("-ff", "--font-family", type=str, metavar="<FONT_FAMILY>", default=font_path, help="the font family to use.\ncan also be a path to a truetype font file\n(default: '%(default)s')")
     arg_parser.add_argument("-fs", "--font-size", type=measure_type, metavar=get_measure_format(), default="32pt", help="the font size to use")
+    arg_parser.add_argument("--no-ligatures", dest="ligatures", action="store_false", help=f"disable font ligatures. if libraqm is not available, ligatures are disabled by default.\nlibraqm:{'' if is_libraqm_available() else ' not'} available")
     arg_parser.add_argument("-fg", "--fill-color", type=color, metavar=get_color_format(), default="0xE6E2E1", help="the color to fill the text with")
     arg_parser.add_argument("-stw", "--stroke-width", type=measure_type, metavar=get_measure_format(), default="0px", help="the width of the stroke used to draw the text")
     arg_parser.add_argument("-st", "--stroke-color", type=color, metavar=get_color_format(), default="transparent", help="the color of the stroke used to draw the text")
@@ -269,6 +270,7 @@ def __main__(argv) -> int:
             generate_text_image(
                 text,
                 font=font,
+                ligatures=opt.ligatures,
                 fill_color=opt.fill_color,
                 stroke_width=opt.stroke_width,
                 stroke_color=opt.stroke_color,
